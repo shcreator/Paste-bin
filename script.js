@@ -13,7 +13,7 @@ const firebaseConfig = {
   appId: "1:674112392572:web:57a38a70767def5372e8f9"
 };
 
-
+const app = initializeApp(firebaseConfig);
 var db = firebase.database();
 
 document.getElementById("paste-form).addEventListener("submit", function(event) {
