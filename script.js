@@ -13,23 +13,47 @@ const firebaseConfig = {
   appId: "1:674112392572:web:57a38a70767def5372e8f9"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
-// Get a reference to the Realtime Database
 var db = firebase.database();
 
-// Handle form submission event
-document.getElementById("paste-form").addEventListener("submit", function(event) {
-    event.preventDefault();
-    var pasteData = document.getElementById("paste-data").value;
-    db.ref("paste").push({
-        data: pasteData
-    });
+document.getElementById("paste-form).addEventListener("submit", function(event) {
+  event.preventDefault();
+  var pasteData = document.getElementById("paste-data").value;
+
+  // Generate a new unique key for the paste
+  var newPasteKey = db.ref().child('paste').push().key; 
+
+  // Store the paste data along with its URL
+  db.ref('paste/' + newPasteKey).set({
+    data: pasteData
+  }).then(() => {
+    // Construct the URL for the paste
+    var pasteUrl = window.location.href + newPasteKey; 
+
+    // Display the URL to the user
+    var pasteOutput = document.getElementById("paste-output");
+    pasteOutput.innerHTML = '<p>Your paste is available at: <a href="' + pasteUrl + '">' + pasteUrl + '</a></p>';
+  });
 });
 
-// Retrieve paste data from Realtime Database
-db.ref("paste").on("child_added", function(data) {
-    var pasteOutput = document.getElementById("paste-output");
-    pasteOutput.innerHTML += "<p>" + data.val().data + "</p>";
-});
+
+// When a user visits a paste URL directly
+function displayPasteFromUrl() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const pasteId = urlParams.get('id'); 
+
+  if (pasteId) {
+    db.ref('paste/' + pasteId).once('value')
+      .then(snapshot => {
+        if (snapshot.exists()) {
+          const pasteData = snapshot.val().data;
+          document.getElementById("paste-output").innerHTML = '<pre>' + pasteData + '</pre>';
+        } else {
+          document.getElementById("paste-output").innerHTML = '<p>Paste not found.</p>';
+        }
+      });
+  }
+}
+
+// Call the function to display paste if ID is in the URL
+displayPasteFromUrl();
